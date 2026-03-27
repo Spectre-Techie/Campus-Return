@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────
+
+model User {
+  id        String  @id @default(uuid()) @db.Uuid
+  clerkId   String  @unique @map("clerk_id")
+  email     String  @unique @db.VarChar(255)
+  displayName String? @map("display_name") @db.VarChar(30)
+  avatarUrl   String? @map("avatar_url")
+  isAdmin   Boolean @default(false) @map("is_admin")
+  flagCount Int     @default(0) @map("flag_count")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  itemsFound    Item[]
+  claimsMade    Claim[]
+  messagesSent  Message[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+// ─── Items ───────────────────────────────────────────────────
+
+model Item {
+  id               String   @id @default(uuid()) @db.Uuid
+  finderId         String   @map("finder_id") @db.Uuid
+  category         String   @db.VarChar(50)
+  description      String
+  secretMarkers    String[] @default([]) @map("secret_markers")
+  photoCloudinaryId String  @map("photo_cloudinary_id") @db.VarChar(255)
+  photoBlurRegions Json?    @map("photo_blur_regions")
+  locationZone     String   @map("location_zone") @db.VarChar(100)
+  postedAt         DateTime @default(now()) @map("posted_at")
+  expiresAt        DateTime @map("expires_at")
+  status           String   @default("active") @db.VarChar(20) // active | claimed | expired
+
+  // Relations
+  finder        User           @relation(fields: [finderId], references: [id])
+  claims        Claim[]
+  notifications Notification[]
+
+  @@index([finderId])
+  @@index([status, postedAt(sort: Desc)])
+  @@index([expiresAt])
+  @@index([locationZone, status])
+  @@index([category, postedAt(sort: Desc)])
+  @@map("items")
+}
+
+// ─── Claims ──────────────────────────────────────────────────
+
+model Claim {
+  id                  String   @id @default(uuid()) @db.Uuid
+  itemId              String   @map("item_id") @db.Uuid
+  loserId             String   @map("loser_id") @db.Uuid
+  verificationAttempt String   @map("verification_attempt")
+  status              String   @default("pending") @db.VarChar(20) // pending | approved | rejected
+  finderConfirmedAt   DateTime? @map("finder_confirmed_at")
+  claimerConfirmedAt  DateTime? @map("claimer_confirmed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  item     Item      @relation(fields: [itemId], references: [id])
+  loser    User      @relation(fields: [loserId], references: [id])
+  messages Message[]
+
+  @@index([itemId])
+  @@index([loserId])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([itemId, status])
+  @@map("claims")
+}
+
+// ─── Messages ────────────────────────────────────────────────
+
+model Message {
+  id       String    @id @default(uuid()) @db.Uuid
+  claimId  String    @map("claim_id") @db.Uuid
+  senderId String    @map("sender_id") @db.Uuid
+  content  String
+  readAt   DateTime? @map("read_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  claim  Claim @relation(fields: [claimId], references: [id])
+  sender User  @relation(fields: [senderId], references: [id])
+
+  @@index([claimId])
+  @@index([claimId, createdAt(sort: Desc)])
+  @@map("messages")
+}
+
+// ─── Notifications ───────────────────────────────────────────
+
+model Notification {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  type          String    @db.VarChar(50) // item_match | claim_received | claim_status | new_message
+  relatedItemId String?   @map("related_item_id") @db.Uuid
+  content       String?
+  readAt        DateTime? @map("read_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User  @relation(fields: [userId], references: [id])
+  relatedItem Item? @relation(fields: [relatedItemId], references: [id])
+
+  @@index([userId])
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@map("notifications")
+}

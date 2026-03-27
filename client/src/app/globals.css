@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f2f5f7;
+  --foreground: #1e2b36;
+  --canvas: #f2f5f7;
+  --surface: #ffffff;
+  --surface-2: #eaf0f3;
+  --ink: #1e2b36;
+  --ink-muted: #5d6b78;
+  --brand: #0f6462;
+  --brand-deep: #0a4b4a;
+  --brand-soft: #d8eceb;
+  --accent: #b88338;
+  --border: #cfdae0;
+}
+
+body {
+  background: radial-gradient(circle at top left, #fbfcfd 0%, var(--background) 42%, #eef3f6 100%);
+  color: var(--foreground);
+  font-family: var(--font-sans), "Segoe UI", "Helvetica Neue", sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+.font-display {
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+}
+
+.brand-gradient {
+  background: linear-gradient(140deg, #0a4b4a 0%, #0f6462 52%, #2f827f 100%);
+}
+
+.surface-card {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
+  border-radius: 1.25rem;
+}
+
+.section-shell {
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(240, 245, 248, 0.9));
+  border-radius: 1.5rem;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 520ms ease-out both;
+}
+
+.animate-fade-up-delayed {
+  animation: fade-up 620ms ease-out 120ms both;
+}
+
+.soft-panel {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: 0 16px 38px rgba(31, 43, 55, 0.08);
+}
