@@ -273,6 +273,15 @@ export default function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+
+            <Link
+              href="/items/post"
+              onClick={() => setMenuOpen(false)}
+              className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand-deep)] px-3 py-2 text-sm font-semibold text-white"
+            >
+              <Plus className="h-4 w-4" />
+              Post Item
+            </Link>
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 import type { Server as HttpServer } from "node:http";
 import { Server } from "socket.io";
-import { env } from "../config/env.js";
+import { getAllowedOrigins, isAllowedOrigin } from "../config/cors.js";
 import { logger } from "../utils/logger.js";
 
 let io: Server | null = null;
@@ -8,7 +8,15 @@ let io: Server | null = null;
 export function initRealtime(server: HttpServer) {
   io = new Server(server, {
     cors: {
-      origin: env.FRONTEND_URL,
+      origin(origin, callback) {
+        if (isAllowedOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        logger.warn({ origin, allowedOrigins: getAllowedOrigins() }, "Socket CORS blocked request origin");
+        callback(new Error("Not allowed by CORS"));
+      },
       credentials: true,
       methods: ["GET", "POST"],
     },

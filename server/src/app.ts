@@ -12,6 +12,7 @@ import { claimRouter } from "./routes/claims.routes.js";
 import { notificationRouter } from "./routes/notifications.routes.js";
 import { configRouter } from "./routes/config.routes.js";
 import { env } from "./config/env.js";
+import { getAllowedOrigins, isAllowedOrigin } from "./config/cors.js";
 import { prisma } from "./config/database.js";
 import { logger } from "./utils/logger.js";
 
@@ -25,14 +26,23 @@ app.disable("x-powered-by");
 app.use(helmet());
 
 // CORS -- whitelist frontend only
-app.use(
-  cors({
-    origin: env.FRONTEND_URL,
-    credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const corsOptions: cors.CorsOptions = {
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    logger.warn({ origin, allowedOrigins: getAllowedOrigins() }, "CORS blocked request origin");
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Compression
 app.use(compression());
